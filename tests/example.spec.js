@@ -444,11 +444,10 @@ async function createDefaultTodos(page) {
 
 /**
  * @param {import('@playwright/test').Page} page
- * @param {string} title
+ * @param {string} text
  */
-async function checkTodosInLocalStorage(page, title) {
+async function checkTodosInLocalStorage(page, text) {
   return await page.waitForFunction(t => {
-  // @ts-ignore
-  return JSON.parse(localStorage['react-todos']).map(i => i.title).includes(t);
-  }, title);
+    return JSON.parse(localStorage['react-todos']).map(i => i.title).includes(t);
+  }, text);
 }
