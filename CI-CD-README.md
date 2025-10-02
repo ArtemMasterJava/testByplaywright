@@ -34,10 +34,10 @@ This project is configured with a comprehensive CI/CD pipeline using GitHub Acti
 - Visual status indicators in GitHub UI
 - Easy-to-read summary table
 
-### 5. **GitHub Pages Deployment**
-- Automatic deployment of test reports
-- Available at: `https://[username].github.io/[repository-name]`
-- Only deploys on main branch
+### 5. **Artifact-Based Reports**
+- Test reports stored as downloadable artifacts
+- Available for 30 days after test execution
+- No dependency on GitHub Pages configuration
 
 ## 🎯 Triggers
 
@@ -45,8 +45,7 @@ The workflow runs on:
 
 - **Push** to `main`, `master`, or `develop` branches
 - **Pull Requests** to `main` or `master`
-- **Schedule**: Daily at 2 AM UTC
-- **Manual**: Via GitHub Actions UI with browser selection
+- **Manual**: Via GitHub Actions UI
 
 ## 📊 Available npm Scripts
 
@@ -167,37 +166,23 @@ BASE_URL=https://example.com
    - Check workflow permissions
    - Verify branch protection rules
 
-## 🛠️ Налаштування GitHub Pages
+## 📁 Доступ до звітів
 
-### Автоматичне налаштування
-Workflow тепер автоматично намагається увімкнути GitHub Pages. Якщо це не спрацює, виконайте ручне налаштування:
+### Завантаження звітів
+1. Перейдіть на сторінку **Actions** вашого репозиторію
+2. Оберіть останній запуск workflow
+3. Прокрутіть вниз до секції **Artifacts**
+4. Завантажте потрібні звіти:
+   - **playwright-report-[browser]**: Звіти для конкретного браузера
+   - **playwright-traces-[browser]**: Трейс файли для дебагу (при помилках)
 
-### Ручне налаштування
-1. Перейдіть в **Settings** → **Pages**
-2. В розділі **Source** виберіть **GitHub Actions**
-3. Збережіть налаштування
+### Перегляд звітів
+1. Завантажте та розпакуйте архів зі звітом
+2. Відкрийте файл `index.html` у браузері
+3. Переглядайте детальні результати тестів
 
-### Альтернативний варіант
-Якщо GitHub Pages не потрібен, використовуйте простіший workflow:
-```bash
-# Перейменуйте основний workflow
-mv .github/workflows/playwright.yml .github/workflows/playwright-with-pages.yml
-
-# Використовуйте простий workflow
-mv .github/workflows/playwright-simple.yml .github/workflows/playwright.yml
-```
-
-### Виправлення помилки "Deploy Test Report - Not Found"
-Ця помилка виникає, якщо GitHub Pages не налаштовано. Виправлення:
-
-1. **Увімкніть GitHub Pages** (див. вище)
-2. **Або використовуйте простий workflow** без Pages
-3. **Перевірте дозволи репозиторію** - потрібні права на Actions та Pages
-
-### Дозволи репозиторію
-Переконайтеся, що в **Settings** → **Actions** → **General**:
-- ✅ **Allow GitHub Actions to create and approve pull requests**
-- ✅ **Read and write permissions** для GITHUB_TOKEN
+### GitHub Pages (опціонально)
+Якщо потрібно автоматичне розгортання звітів на GitHub Pages, використовуйте workflow з файлу `.github/workflows/playwright-with-pages-broken.yml` після налаштування необхідних дозволів.
 
 ## 🔐 Security Considerations
 
