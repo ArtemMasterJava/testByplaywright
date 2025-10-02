@@ -126,27 +126,85 @@ jobs:
     needs: test
     if: always() && github.ref == 'refs/heads/main'
     permissions:
+      contents: read
       pages: write
       id-token: write
+      actions: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download test reports
         uses: actions/download-artifact@v4
         with:
           pattern: playwright-report-*
           merge-multiple: true
+          path: ./reports
+
+      - name: Create combined report directory
+        run: |
+          mkdir -p combined-report
+          # Copy all browser reports to combined directory
+          if [ -d "./reports" ]; then
+            find ./reports -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" | head -1 | xargs dirname | xargs -I {} cp -r {}/* combined-report/ 2>/dev/null || true
+          fi
+          # Create index.html if it doesn't exist
+          if [ ! -f "combined-report/index.html" ]; then
+            echo "<html><body><h1>Playwright Test Reports</h1><p>Reports will be available after tests complete successfully.</p></body></html>" > combined-report/index.html
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: playwright-report/
+          path: ./combined-report
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Upload report as artifact (fallback)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-test-report
+          path: ./combined-report
+          retention-days: 30
+
+      - name: Comment on PR with report link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            let reportUrl = '';
+            if ('${{ steps.deployment.outputs.page_url }}') {
+              reportUrl = '${{ steps.deployment.outputs.page_url }}';
+            } else {
+              reportUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+            }
+            
+            const comment = `## 🎭 Playwright Test Results
+            
+            📊 **Test Report**: [View Report](${reportUrl})
+            
+            The test results are available in the artifacts section if GitHub Pages deployment failed.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

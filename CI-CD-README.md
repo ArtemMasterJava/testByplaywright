@@ -167,6 +167,38 @@ BASE_URL=https://example.com
    - Check workflow permissions
    - Verify branch protection rules
 
+## 🛠️ Налаштування GitHub Pages
+
+### Автоматичне налаштування
+Workflow тепер автоматично намагається увімкнути GitHub Pages. Якщо це не спрацює, виконайте ручне налаштування:
+
+### Ручне налаштування
+1. Перейдіть в **Settings** → **Pages**
+2. В розділі **Source** виберіть **GitHub Actions**
+3. Збережіть налаштування
+
+### Альтернативний варіант
+Якщо GitHub Pages не потрібен, використовуйте простіший workflow:
+```bash
+# Перейменуйте основний workflow
+mv .github/workflows/playwright.yml .github/workflows/playwright-with-pages.yml
+
+# Використовуйте простий workflow
+mv .github/workflows/playwright-simple.yml .github/workflows/playwright.yml
+```
+
+### Виправлення помилки "Deploy Test Report - Not Found"
+Ця помилка виникає, якщо GitHub Pages не налаштовано. Виправлення:
+
+1. **Увімкніть GitHub Pages** (див. вище)
+2. **Або використовуйте простий workflow** без Pages
+3. **Перевірте дозволи репозиторію** - потрібні права на Actions та Pages
+
+### Дозволи репозиторію
+Переконайтеся, що в **Settings** → **Actions** → **General**:
+- ✅ **Allow GitHub Actions to create and approve pull requests**
+- ✅ **Read and write permissions** для GITHUB_TOKEN
+
 ## 🔐 Security Considerations
 
 - Secrets are properly handled via GitHub Secrets
