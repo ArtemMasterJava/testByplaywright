@@ -8,9 +8,14 @@ test.describe('Movies Lists - Seed via localStorage fallback', () => {
     try {
       await listPage.goto('/lists', { waitUntil: 'load' });
     } catch {}
-    // Soft check: presence of either the sample list names or the lists page heading
-    const marker = listPage.locator('text=Lists, #lists, [data-list-name="Favorites"], text=Favorites');
-    await expect(marker.first()).toBeVisible();
+    // Soft checks: heading or list container visible
+    const heading = listPage.locator('h1');
+    const listsContainer = listPage.locator('#lists');
+    if (await heading.count()) {
+      await expect(heading.first()).toHaveText(/Lists/i);
+    } else {
+      await expect(listsContainer.first()).toBeVisible();
+    }
   });
 });
 

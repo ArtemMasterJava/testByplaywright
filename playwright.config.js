@@ -1,7 +1,7 @@
 ﻿const { defineConfig, devices } = require('@playwright/test');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
-const webServerCommand = process.env.WEB_SERVER_CMD; // e.g., "npm run dev" or "npx http-server . -p 3000"
+const webServerCommand = process.env.WEB_SERVER_CMD || 'npm run dev'; // default to dev server in CI/local
 
 module.exports = defineConfig({
   testDir: './tests',
@@ -21,12 +21,12 @@ module.exports = defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
-  webServer: webServerCommand ? {
+  webServer: {
     command: webServerCommand,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-  } : undefined,
+  },
   projects: [
     {
       name: 'chromium',
