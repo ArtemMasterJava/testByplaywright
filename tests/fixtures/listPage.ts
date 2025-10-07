@@ -16,13 +16,13 @@ type ListPageFixture = {
 };
 
 export const test = base.extend<ListPageFixture>({
-  listPage: async ({ context }, use) => {
+  listPage: async ({ context, baseURL }, use) => {
     const page = await createPageFromContext(context);
 
-    const baseUrl = process.env.MOVIE_SITE_URL ?? 'https://www.netflix.com/ua-en/';
+    const baseUrl = process.env.MOVIE_SITE_URL || baseURL || 'http://localhost:3000/';
 
-    // 1) Create a page and navigate it
-    await page.goto(baseUrl, { waitUntil: 'load' });
+    // 1) Create a page and navigate it (relative to baseURL with retry)
+    await gotoWithRetry(page, '/', 10, 500);
 
     // 2) Create lists and add movies to them (best-effort, resilient to unknown UI)
     const lists: MovieList[] = [
@@ -55,9 +55,8 @@ export const test = base.extend<ListPageFixture>({
     await updateFirstMovieImages(page, lists);
 
     // 4) Open the list page (best-effort; tolerate unknown routes)
-    const listsUrl = safeJoinUrl(baseUrl, '/lists');
     try {
-      await page.goto(listsUrl, { waitUntil: 'load' });
+      await page.goto('/lists', { waitUntil: 'load' });
     } catch {
       // Ignore navigation errors if the route does not exist
     }
@@ -81,6 +80,20 @@ function safeJoinUrl(base: string, path: string): string {
   } catch {
     return base;
   }
+}
+
+async function gotoWithRetry(page: Page, url: string, attempts: number, delayMs: number): Promise<void> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await page.goto(url, { waitUntil: 'load' });
+      return;
+    } catch (err) {
+      lastError = err;
+      await page.waitForTimeout(delayMs);
+    }
+  }
+  throw lastError;
 }
 
 async function seedListsIntoApp(page: Page, lists: MovieList[]): Promise<void> {

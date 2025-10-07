@@ -1,5 +1,8 @@
 ﻿const { defineConfig, devices } = require('@playwright/test');
 
+const baseURL = process.env.BASE_URL || 'http://localhost:3000';
+const webServerCommand = process.env.WEB_SERVER_CMD; // e.g., "npm run dev" or "npx http-server . -p 3000"
+
 module.exports = defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -14,9 +17,16 @@ module.exports = defineConfig({
     ['html', { outputFolder: 'playwright-report' }]
   ],
   use: {
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  webServer: webServerCommand ? {
+    command: webServerCommand,
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  } : undefined,
   projects: [
     {
       name: 'chromium',
